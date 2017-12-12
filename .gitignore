@@ -78,3 +78,9 @@ local.properties
 .cache-main
 .scala_dependencies
 .worksheet
+.project
+ReservationEvent-api/.mvn/wrapper/maven-wrapper.jar
+ReservationEvent-impl/.mvn/wrapper/maven-wrapper.jar
+ReservationStatus-api/.mvn/wrapper/maven-wrapper.jar
+ReservationStatus-impl/.mvn/wrapper/maven-wrapper.jar
+ReservationWS/.mvn/wrapper/maven-wrapper.jar
