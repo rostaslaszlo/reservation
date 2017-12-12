@@ -12,10 +12,12 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.integration.annotation.Gateway;
 import org.springframework.integration.annotation.MessagingGateway;
+import org.springframework.integration.channel.NullChannel;
 import org.springframework.integration.dsl.IntegrationFlow;
 import org.springframework.integration.dsl.IntegrationFlows;
 import org.springframework.integration.dsl.http.Http;
-import org.springframework.integration.stream.CharacterStreamWritingMessageHandler;
+import org.springframework.integration.handler.LoggingHandler.Level;
+import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.web.client.ResponseErrorHandler;
 
@@ -32,15 +34,21 @@ public class ReservationStatusServiceV1Config {
     private ResponseErrorHandler errorHandler = new ResponseErrorHandler() {
         @Override
         public boolean hasError(ClientHttpResponse response) throws IOException {
+            System.out.println("body: " + IOUtils.toString(response.getBody(), "UTF-8"));
+
             return response.getRawStatusCode() != 200;
         }
 
         @Override
         public void handleError(ClientHttpResponse response) throws IOException {
-            System.out.println("error body: " + IOUtils.toString(response.getBody(), "UTF-8"));
             throw new ReservationStatusException();
         }
     };
+
+    @Bean
+    MessageChannel nullChanel(){
+        return new NullChannel();
+    }
 
     @Bean
     public IntegrationFlow reservationStatusServiceV1GatewayGetReservationsFlow() {
@@ -56,24 +64,24 @@ public class ReservationStatusServiceV1Config {
     }
 
     @Bean
-    public IntegrationFlow werwerwerwer() {
-        return IntegrationFlows
-                .from("stdOutChannel")
-                .handle(CharacterStreamWritingMessageHandler.stdout()).get();
-    }
-
-    @Bean
     public IntegrationFlow reservationStatusServiceV1GatewayPutReservationFlow() {
         return IntegrationFlows
                 .from("reservationStatusServiceV1PutReservationChannel")
-                .handle(Http.outboundGateway(reservationStatusServiceV1BaseUrl + "/reservation/{statusType}/event/{eventId}/ticketId/{ticketId}")
+                .log(Level.INFO, "trace.http",
+                    "'Request.\n'"+
+                    ".concat('Headers : ').concat(headers.toString()).concat('\n')"+
+                    ".concat('Payload : ').concat(payload.toString())"
+                )
+                .handle(
+                    Http.outboundGateway(reservationStatusServiceV1BaseUrl + "/reservation/{statusType}/event/{eventId}/ticketId/{ticketId}")
                     .httpMethod(HttpMethod.GET)
-                    .expectedResponseType(Void.class)
                     .errorHandler(errorHandler)
                     .uriVariable("eventId", "payload[0]")
                     .uriVariable("ticketId", "payload[1]")
                     .uriVariable("statusType", "payload[2]")
-                ).get();
+                )
+                .channel(nullChanel())
+                .get();
     }
 
     @Bean
@@ -81,12 +89,14 @@ public class ReservationStatusServiceV1Config {
         return IntegrationFlows
                 .from("reservationStatusServiceV1DeleteReservationChannel")
                 .handle(Http.outboundGateway(reservationStatusServiceV1BaseUrl + "/reservation/event/{eventId}/ticketId/{ticketId}")
-                    .httpMethod(HttpMethod.DELETE)
+                    .httpMethod(HttpMethod.GET)
                     .expectedResponseType(Void.class)
                     .errorHandler(errorHandler)
                     .uriVariable("eventId", "payload[0]")
                     .uriVariable("ticketId", "payload[1]")
-                ).get();
+                )
+                .channel(nullChanel())
+                .get();
     }
 
     @MessagingGateway
@@ -97,7 +107,7 @@ public class ReservationStatusServiceV1Config {
         Map<String, ReservationStatusType> getReservations(@Payload String eventId);
 
         @Override
-        @Gateway(requestChannel = "reservationStatusServiceV1PutReservationChannel", replyTimeout = 2, requestTimeout = 200, replyChannel="stdOutChannel")
+        @Gateway(requestChannel = "reservationStatusServiceV1PutReservationChannel", replyTimeout = 2, requestTimeout = 200)
         @Payload("T(java.util.Arrays).asList(#args[0],#args[1],#args[2])")
         void putReservation(String eventId, String ticketId, ReservationStatusType statusType);
 

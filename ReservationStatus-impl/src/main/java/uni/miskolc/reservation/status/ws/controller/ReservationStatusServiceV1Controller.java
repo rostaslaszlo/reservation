@@ -22,11 +22,13 @@ public class ReservationStatusServiceV1Controller implements ReservationStatusSe
 
     @Autowired
     private StatusStore statusStore;
-    
+
     @RequestMapping(value= {"/getReservations/event/{eventId}"}, method = {RequestMethod.GET})
     @ResponseBody
     @Override
     public Map<String, ReservationStatusType> getReservations(@PathVariable String eventId) {
+        System.out.println("getReservations eventId:" + eventId);
+
         return statusStore.getStatus(eventId);
     }
 
@@ -34,13 +36,17 @@ public class ReservationStatusServiceV1Controller implements ReservationStatusSe
     @ResponseBody
     @Override
     public void putReservation(@PathVariable String eventId, @PathVariable String ticketId, @PathVariable ReservationStatusType statusType) {
+        System.out.println("putReservation eventId:" + eventId + " ticketId:" + ticketId + " statusType:" + statusType);
+
         statusStore.setStatus(eventId, ticketId, statusType);
     }
-    
-    @RequestMapping(value= {"/reservation/event/{eventId}/ticketId/{ticketId}"}, method = {RequestMethod.DELETE})
+
+    @RequestMapping(value= {"/reservation/event/{eventId}/ticketId/{ticketId}"}, method = {RequestMethod.GET})
     @ResponseBody
     @Override
     public void deleteReservation(@PathVariable String eventId, @PathVariable String ticketId) {
+        System.out.println("deleteReservation eventId:" + eventId + " ticketId:" + ticketId);
+
         statusStore.removeStatus(eventId, ticketId);
     }
 

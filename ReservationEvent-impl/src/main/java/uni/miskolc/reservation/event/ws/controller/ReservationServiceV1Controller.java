@@ -17,29 +17,32 @@ import uni.miskolc.reservation.event.ws.api.dto.ReservationEvent;
 @Controller
 @RequestMapping(value= {"/v1"})
 public class ReservationServiceV1Controller implements ReservationEventServiceV1 {
-    
+
     @RequestMapping(value= {"/getEvent/{id}"}, method = {RequestMethod.GET})
     @ResponseBody
     @Override
     public ReservationEvent getEvent(@PathVariable String id) {
-        System.out.println("beérkezett!!!" + id);
+        System.out.println("getEvent id:" + id);
+
         ReservationEvent reservationEvent = new ReservationEvent();
         reservationEvent.setEventId(id);
         reservationEvent.setEventLocation("Miskolc, Egyetemváros");
         reservationEvent.setEventName("Beadandó védése");
         reservationEvent.setEventStartDate(new Date());
-        
+
         return reservationEvent;
     }
-    
+
     @RequestMapping(value= {"/getLocation/{locationId}"}, method = {RequestMethod.GET})
     @ResponseBody
     @Override
     public String getLocation(@PathVariable String locationId) {
+        System.out.println("getLocation locationId:" + locationId);
+
         throw new RuntimeException("óó jaj");
         //return new String("fdf" + locationId);
     }
-    
+
     @ExceptionHandler(Exception.class)
     @ResponseStatus(code = HttpStatus.INTERNAL_SERVER_ERROR)
     @ResponseBody
