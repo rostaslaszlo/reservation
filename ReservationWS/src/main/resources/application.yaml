@@ -1,0 +1,7 @@
+server:
+  port: 8082
+
+integration-locations:
+  reservation-event-service-v1: http://localhost:8080/v1
+  reservation-status-service-v1: http://localhost:8081/v1
+  
